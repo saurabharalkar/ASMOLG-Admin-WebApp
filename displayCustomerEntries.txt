@@ -1,0 +1,35 @@
+
+        function displayCustomerEntries() {
+            customerEntries.innerHTML = "";
+
+            customerCollection.get().then(querySnapshot => {
+                querySnapshot.forEach(doc => {
+                    const data = doc.data();
+                    const customerEntry = document.createElement("div");
+                    customerEntry.innerHTML = `
+                        <div class="bg-white p-4 shadow-md grid grid-cols-3 gap-4 rounded-lg mb-4">
+                            <p class="border border-gray-300 font-semibold p-2 rounded mt-2 w-full text-gray-700">Name: ${data.name}</p>
+                            <p class="border border-gray-300 text-gray-600 p-2 rounded mt-2 w-full">Ref No: ${data.refNo}</p>
+                            <p class="border border-gray-300 text-gray-600 p-2 rounded mt-2 w-full">Dr Name: ${data.drName}</p>
+                            <p class="border border-gray-300 text-gray-600 p-2 rounded mt-2 w-full">Contact Number: ${data.contactNumber}</p>
+                            <p class="border border-gray-300 text-gray-600 p-2 rounded mt-2 w-full">Address: ${data.address}</p>
+                            <p class="border border-gray-300 text-gray-600 p-2 rounded mt-2 w-full">Glass Type: ${data.glassType}</p>
+                            <p class="border border-gray-300 text-gray-600 p-2 rounded mt-2 w-full">Left AXIS: ${data.leftAXIS}</p>
+                            <p class="border border-gray-300 text-gray-600 p-2 rounded mt-2 w-full">Left CYL: ${data.leftCYL}</p>
+                            <p class="border border-gray-300 text-gray-600 p-2 rounded mt-2 w-full">Left SPH: ${data.leftSPH}</p>
+                            <p class="border border-gray-300 text-gray-600 p-2 rounded mt-2 w-full">Right AXIS: ${data.rightAXIS}</p>
+                            <p class="border border-gray-300 text-gray-600 p-2 rounded mt-2 w-full">Right CYL: ${data.rightCYL}</p>
+                            <p class="border border-gray-300 text-gray-600 p-2 rounded mt-2 w-full">Right SPH: ${data.rightSPH}</p>
+                            <p class="border border-gray-300 text-gray-600 p-2 rounded mt-2 w-full">Total Amount: ${data.customerAmount}</p>
+                            <p class="border border-gray-300 text-gray-600 p-2 rounded mt-2 w-full">Credited: ${data.customerPaid}</p>
+                            <!-- Display more customer information here -->
+                        </div>
+                    `;
+                    customerEntries.appendChild(customerEntry);
+                });
+            }).catch(error => {
+                console.error("Error retrieving customer entries: ", error);
+            });
+        }
+
+        displayCustomerEntries();
