@@ -61,8 +61,7 @@
                 PDF Preview:
             </p>
             <!-- Add `sandbox` attribute to iframe to disable scripts and `toolbar=0` query parameter to disable the toolbar -->
-            <iframe id="pdf-preview" class="w-full h-64" src=""
-                frameborder="0" scrolling="no"></iframe>
+            <iframe id="pdf-preview" class="w-full h-64" src="" frameborder="0" scrolling="no"></iframe>
         </div>
     </div>
 
@@ -75,7 +74,7 @@
             storageBucket: "mainapp-5db80.appspot.com",
             messagingSenderId: "645077474595",
             appId: "1:645077474595:web:6d417a179f1d1b534b4096",
-            measurementId: "G-XD4WP01K2E"
+            measurementId: "G-XD4WP01K2E" // Optional, you can remove this if not needed
         };
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
@@ -139,8 +138,8 @@
                     uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
                         const title = collectionSelect.value + ' ' + titleInput.value;
                         const pdfData = {
-                            title: title,
-                            url: downloadURL,
+                            chapter: title,
+                            pdfLink: downloadURL,
                         };
 
                         // Concatenate the collection name and title to create the document name
