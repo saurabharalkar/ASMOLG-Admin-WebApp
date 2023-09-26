@@ -83,6 +83,7 @@
         const uploadButton = document.getElementById('upload-button');
         const pdfPreview = document.getElementById('pdf-preview');
         const fileInput = document.getElementById('file-input');
+        const pdfTitle = document.getElementById('pdf-title');
 
         fileInput.addEventListener('change', function () {
             const selectedFile = fileInput.files[0];
@@ -99,7 +100,6 @@
         document.getElementById('upload-form').addEventListener('submit', function (e) {
             e.preventDefault();
             const collectionSelect = document.getElementById('collection-select');
-            const titleInput = document.getElementById('pdf-title');
 
             // Disable the upload button
             uploadButton.disabled = true;
@@ -136,40 +136,48 @@
                 () => {
                     // Upload successful, now store metadata in Firestore
                     uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
-                        const title = collectionSelect.value + ' ' + titleInput.value;
-                        const pdfData = {
-                            chapter: title,
-                            pdfLink: downloadURL,
-                        };
+                        const title = pdfTitle.value; // Get the selected title
 
-                        // Concatenate the collection name and title to create the document name
-                        const documentName = title;
-
-                        // Reference the selected Firestore collection and document
+                        // Reference the selected Firestore collection
                         const pdfsCollection = firestore.collection(selectedCollection);
-                        const documentRef = pdfsCollection.doc(documentName);
 
-                        // Set the document data
-                        documentRef.set(pdfData)
-                            .then(() => {
-                                console.log('Document successfully written to collection: ', selectedCollection);
+                        // Get the number of documents in the collection
+                        pdfsCollection.get().then((querySnapshot) => {
+                            // Adjust the counter based on the number of documents
+                            const counter = querySnapshot.size === 0 ? 1 : querySnapshot.size + 1;
 
-                                // Clear the form
-                                fileInput.value = '';
-                                titleInput.value = '';
+                            const pdfData = {
+                                id: counter, // Assign the adjusted counter value
+                                chapter: title,
+                                pdfLink: downloadURL,
+                            };
 
-                                alert('PDF uploaded successfully');
-                            })
-                            .catch((error) => {
-                                console.error('Error adding document: ', error);
-                            })
-                            .finally(() => {
-                                // Re-enable the upload button
-                                uploadButton.disabled = false;
-                            });
+                            // Use the ID as the document name
+                            const documentName = pdfData.id.toString();
+                            const documentRef = pdfsCollection.doc(documentName);
 
-                        // Clear PDF preview
-                        pdfPreview.src = '';
+                            // Set the document data
+                            documentRef.set(pdfData)
+                                .then(() => {
+                                    console.log('Document successfully written to collection: ', selectedCollection);
+
+                                    // Clear the form
+                                    fileInput.value = '';
+                                    pdfTitle.value = '';
+
+                                    alert('PDF uploaded successfully');
+                                })
+                                .catch((error) => {
+                                    console.error('Error adding document: ', error);
+                                })
+                                .finally(() => {
+                                    // Re-enable the upload button
+                                    uploadButton.disabled = false;
+                                });
+
+                            // Clear PDF preview
+                            pdfPreview.src = '';
+                        });
                     });
                 }
             );
