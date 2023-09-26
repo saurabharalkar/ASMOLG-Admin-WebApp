@@ -1,206 +1,187 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ASMOLG Admin Website | Home</title>
-    <!-- Include Tailwind CSS -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.9/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.9/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.9/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.9/firebase-storage.js"></script>
+    <!-- Add Tailwind CSS CDN link here -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
 </head>
 
-<body class="bg-gray-100">
-    <div class="container mx-auto mt-8 p-4">
-        <h1 class="text-3xl font-semibold mb-4">ASMOLG Admin Website</h1>
-
-        <!-- Image Upload Form -->
-        <div class="bg-white p-4 shadow-md rounded-lg">
-            <label for="namebox" class="block font-semibold text-gray-700">Image Name</label>
-            <input type="text" name="namebox" id="namebox" class="border border-gray-300 p-2 rounded mt-2 w-full">
-            <label id="extlab" for="namebox" class="text-sm text-gray-500 mt-1 block"></label>
-
-            <div class="mt-4">
-                <img id="myimage" class="border border-black rounded" alt="Uploaded Image">
-                <label id="upprogress" class="text-sm text-gray-500 mt-2 block"></label>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="bg-white shadow-md rounded ml-5 px-8 pt-6 pb-8 mb-4">
+        <form id="upload-form">
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="file-input">
+                    Select a PDF:
+                </label>
+                <input type="file" id="file-input" accept=".pdf"
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
             </div>
-
-            <div class="mt-4">
-                <button id="selbtn"
-                    class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded">Select
-                    Image</button>
-                <button id="upbtn"
-                    class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded">Upload
-                    Image</button>
-                <button id="downbtn"
-                    class="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-4 rounded">Retrieve
-                    Image</button>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="collection-select">
+                    Select Collection:
+                </label>
+                <select name="collection-select" id="collection-select"
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="collection1">Collection 1</option>
+                    <option value="collection2">Collection 2</option>
+                    <option value="collection3">Collection 3</option>
+                    <option value="CD">Compiler Design</option>
+                    <option value="AI">Artificial Intelligence</option>
+                    <option value="DCN">Data Communication and Networking</option>
+                    <!-- Add more options as needed -->
+                </select>
             </div>
-        </div>
-
-        <!-- Image Container -->
-        <div id="image-container" class="mt-8 flex flex-wrap">
-            <!-- Images will be displayed here -->
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="pdf-title">
+                    Title:
+                </label>
+                <select name="pdf-title" id="pdf-title"
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="Unit-1">Unit 1</option>
+                    <option value="Unit-2">Unit 2</option>
+                    <option value="Unit-3">Unit 3</option>
+                    <option value="Unit-4">Unit 4</option>
+                    <option value="Unit-5">Unit 5</option>
+                    <option value="Unit-6">Unit 6</option>
+                </select>
+            </div>
+            <button type="submit" id="upload-button"
+                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                Upload PDF
+            </button>
+        </form>
+    </div>
+    <div class="mx-auto">
+        <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+            <p class="block text-gray-700 text-sm font-bold mb-2">
+                PDF Preview:
+            </p>
+            <!-- Add `sandbox` attribute to iframe to disable scripts and `toolbar=0` query parameter to disable the toolbar -->
+            <iframe id="pdf-preview" class="w-[150px] h-96" src="" frameborder="0" scrolling="no"></iframe>
         </div>
     </div>
 
-    <script type="module">
-        // Import the necessary Firebase modules
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-analytics.js";
-        import { getStorage, ref as sRef, uploadBytesResumable, getDownloadURL, list, deleteObject } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-storage.js";
-
-        // Your Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyC8E9NOI6hYvl6Bf408B88M4UQJjCmcQs8",
-            authDomain: "asmolg-159c7.firebaseapp.com",
-            databaseURL: "https://asmolg-159c7-default-rtdb.firebaseio.com",
-            projectId: "asmolg-159c7",
-            storageBucket: "asmolg-159c7.appspot.com",
-            messagingSenderId: "974917209960",
-            appId: "1:974917209960:web:39e5077bb70dc86599d0dd",
-            measurementId: "G-F3RCV27K1X"
+    <script>
+        var firebaseConfig = {
+            apiKey: "AIzaSyBe3Z2Y-DQDYQmTXzHGwnQX8NbIX3Uokq8",
+            authDomain: "mainapp-5db80.firebaseapp.com",
+            databaseURL: "https://mainapp-5db80-default-rtdb.firebaseio.com",
+            projectId: "mainapp-5db80",
+            storageBucket: "mainapp-5db80.appspot.com",
+            messagingSenderId: "645077474595",
+            appId: "1:645077474595:web:6d417a179f1d1b534b4096",
+            measurementId: "G-XD4WP01K2E" // Optional, you can remove this if not needed
         };
-
-
         // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
+        firebase.initializeApp(firebaseConfig);
 
-        var files = [];
-        var reader = new FileReader();
+        const firestore = firebase.firestore();
+        const uploadButton = document.getElementById('upload-button');
+        const pdfPreview = document.getElementById('pdf-preview');
+        const fileInput = document.getElementById('file-input');
+        const pdfTitle = document.getElementById('pdf-title');
 
-        var namebox = document.getElementById('namebox');
-        var extlab = document.getElementById('extlab');
-        var myimage = document.getElementById('myimage');
-        var proglab = document.getElementById('upprogress');
-        var SelBtn = document.getElementById('selbtn');
-        var UpBtn = document.getElementById('upbtn');
-        var DownBtn = document.getElementById('downbtn');
-        var imageContainer = document.getElementById('image-container');
-
-        var input = document.createElement('input');
-        input.type = 'file';
-
-        input.addEventListener('change', function (e) {
-            files = e.target.files;
-            var extension = GetFileExt(files[0]);
-            var name = GetFileName(files[0]);
-
-            namebox.value = name;
-            extlab.innerHTML = extension;
-
-            reader.readAsDataURL(files[0]);
+        fileInput.addEventListener('change', function () {
+            const selectedFile = fileInput.files[0];
+            if (selectedFile) {
+                // Display PDF preview with toolbar disabled
+                const pdfUrl = URL.createObjectURL(selectedFile);
+                pdfPreview.src = `${pdfUrl}#toolbar=0`;
+            } else {
+                // Clear PDF preview
+                pdfPreview.src = '';
+            }
         });
 
-        reader.onload = function () {
-            myimage.src = reader.result;
-        };
+        document.getElementById('upload-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const collectionSelect = document.getElementById('collection-select');
 
-        SelBtn.onclick = function () {
-            input.click();
-        };
+            // Disable the upload button
+            uploadButton.disabled = true;
 
-        function GetFileExt(file) {
-            var temp = file.name.split('.');
-            var ext = temp[temp.length - 1];
-            return '.' + ext;
-        }
-
-        function GetFileName(file) {
-            var temp = file.name.split('.');
-            var fname = temp.slice(0, -1).join('.');
-            return fname;
-        }
-
-        async function UploadProcess() {
-            var ImgToUpload = files[0];
-
-            var ImgName = namebox.value + extlab.innerHTML;
-
-            const metaData = {
-                contentType: ImgToUpload.type
-            };
-
-            const storage = getStorage();
-
-            const storageRef = sRef(storage, "Images/" + ImgName);
-
-            const UploadTask = uploadBytesResumable(storageRef, ImgToUpload, metaData);
-
-            UploadTask.on('state_changed', (snapshot) => {
-                var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                proglab.innerHTML = "Upload " + progress + "%";
-            }, (error) => {
-                console.error("Error uploading image:", error);
-                alert("Error: Image Not Uploaded!");
-            }, async () => {
-                try {
-                    // After successful upload, call the displayImages function to update the image display
-                    await displayImages();
-                    console.log("Image uploaded successfully.");
-                    
-                    // Remove the uploaded image from the preview
-                    myimage.src = '';
-                    namebox.value = '';
-                    extlab.innerHTML = '';
-                } catch (error) {
-                    console.error("Error updating image display:", error);
-                }
-            });
-        }
-
-        UpBtn.onclick = UploadProcess;
-
-        // Function to display images from Firebase Storage
-        async function displayImages() {
-            const storage = getStorage();
-            const storageRef = sRef(storage, "Images"); // Reference to the "Images" folder in Firebase Storage
-
-            try {
-                const listResult = await list(storageRef); // List all files in the "Images" folder
-
-                imageContainer.innerHTML = ""; // Clear the image container
-
-                listResult.items.forEach(async (item) => {
-                    const imageUrl = await getDownloadURL(item); // Get the download URL for each image
-                    const imageElement = document.createElement('img');
-                    imageElement.src = imageUrl;
-                    imageElement.className = "border border-black rounded m-2"; // Apply Tailwind CSS class
-                    imageContainer.appendChild(imageElement); // Append the image to the container
-                });
-            } catch (error) {
-                console.error("Error displaying images:", error);
+            // Get the selected file
+            const file = fileInput.files[0];
+            if (!file) {
+                alert('Please select a PDF file');
+                // Re-enable the upload button
+                uploadButton.disabled = false;
+                return;
             }
-        }
 
-        // Call the displayImages function to load and display the initial images
-        displayImages();
+            // Get the selected collection
+            const selectedCollection = collectionSelect.value;
 
-        // Function to delete an image
-        async function deleteImage() {
-            if (namebox.value) {
-                var ImgName = namebox.value + extlab.innerHTML;
-                const storage = getStorage();
-                const storageRef = sRef(storage, "Images/" + ImgName);
+            // Create a storage reference
+            const storageRef = firebase.storage().ref(`pdfs/${file.name}`);
 
-                try {
-                    await deleteObject(storageRef);
-                    console.log("Image deleted successfully.");
-                    // Clear the preview
-                    myimage.src = '';
-                    namebox.value = '';
-                    extlab.innerHTML = '';
-                    // Refresh the image list
-                    await displayImages();
-                } catch (error) {
-                    console.error("Error deleting image:", error);
+            // Upload the file
+            const uploadTask = storageRef.put(file);
+
+            // Monitor the upload progress
+            uploadTask.on(
+                'state_changed',
+                (snapshot) => {
+                    // You can track the upload progress here if needed
+                },
+                (error) => {
+                    console.error('Upload error:', error);
+                    // Re-enable the upload button
+                    uploadButton.disabled = false;
+                },
+                () => {
+                    // Upload successful, now store metadata in Firestore
+                    uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+                        const title = pdfTitle.value; // Get the selected title
+
+                        // Reference the selected Firestore collection
+                        const pdfsCollection = firestore.collection(selectedCollection);
+
+                        // Get the number of documents in the collection
+                        pdfsCollection.get().then((querySnapshot) => {
+                            // Adjust the counter based on the number of documents
+                            const counter = querySnapshot.size === 0 ? 1 : querySnapshot.size + 1;
+
+                            const pdfData = {
+                                id: counter, // Assign the adjusted counter value
+                                chapter: selectedCollection + ' ' + title,
+                                pdfLink: downloadURL,
+                            };
+
+                            // Use the ID as the document name
+                            const documentName = pdfData.id.toString();
+                            const documentRef = pdfsCollection.doc(documentName);
+
+                            // Set the document data
+                            documentRef.set(pdfData)
+                                .then(() => {
+                                    console.log('Document successfully written to collection: ', selectedCollection);
+
+                                    // Clear the form
+                                    fileInput.value = '';
+                                    pdfTitle.value = '';
+
+                                    alert('PDF uploaded successfully');
+                                })
+                                .catch((error) => {
+                                    console.error('Error adding document: ', error);
+                                })
+                                .finally(() => {
+                                    // Re-enable the upload button
+                                    uploadButton.disabled = false;
+                                });
+
+                            // Clear PDF preview
+                            pdfPreview.src = '';
+                        });
+                    });
                 }
-            } else {
-                alert("Please select an image to delete.");
-            }
-        }
-
-        DownBtn.onclick = deleteImage;
+            );
+        });
     </script>
 </body>
 
